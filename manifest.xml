@@ -14,7 +14,7 @@
   <Description DefaultValue="Cryptographic proof of human authorship for Word documents."/>
   <IconUrl DefaultValue="https://writingproof.app/icon-32.png"/>
   <HighResolutionIconUrl DefaultValue="https://writingproof.app/icon-64.png"/>
-  <SupportUrl DefaultValue="https://writingproof.app/support"/>
+  <SupportUrl DefaultValue="https://aisbeautifulness.com/support-word.html"/>
 
   <AppDomains>
     <AppDomain>https://mursideaki.github.io</AppDomain>
