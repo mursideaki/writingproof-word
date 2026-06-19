@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WritingProof — Verify</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f8f9fa;
+      color: #2d3748;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: #2d3748;
+      color: white;
+      padding: 24px 0;
+      text-align: center;
+    }
+    .header h1 { font-size: 24px; font-weight: 700; letter-spacing: 0.3px; }
+    .header p { font-size: 13px; color: #a0aec0; margin-top: 6px; }
+
+    .container {
+      max-width: 720px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+
+    /* Upload area */
+    .upload-area {
+      border: 2px dashed #cbd5e0;
+      border-radius: 12px;
+      padding: 48px 24px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .upload-area:hover, .upload-area.drag { border-color: #2d3748; background: #f7fafc; }
+    .upload-area .icon { font-size: 40px; margin-bottom: 12px; }
+    .upload-area h2 { font-size: 16px; color: #2d3748; margin-bottom: 6px; }
+    .upload-area p { font-size: 13px; color: #a0aec0; }
+    .upload-area input { display: none; }
+
+    .btn-upload {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 10px 24px;
+      background: #2d3748;
+      color: white;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      transition: background 0.15s;
+    }
+    .btn-upload:hover { background: #1a202c; }
+
+    /* Result */
+    .result { display: none; margin-top: 32px; }
+
+    .status-card {
+      padding: 20px 24px;
+      border-radius: 12px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .status-card .s-icon { font-size: 32px; flex-shrink: 0; }
+    .status-card .s-title { font-size: 17px; font-weight: 700; }
+    .status-card .s-sub { font-size: 13px; margin-top: 3px; opacity: 0.8; }
+    .valid   { background: #f0fff4; border: 2px solid #38a169; color: #276749; }
+    .invalid { background: #fff5f5; border: 2px solid #e53e3e; color: #9b2c2c; }
+
+    .card {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+    }
+    .card h3 {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: #a0aec0;
+      margin-bottom: 14px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #f7fafc;
+      font-size: 13px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .lbl { color: #718096; }
+    .info-row .val { font-weight: 600; color: #2d3748; }
+
+    .bar-wrap { margin: 12px 0; }
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #718096;
+      margin-bottom: 5px;
+    }
+    .bar-track { height: 8px; background: #edf2f7; border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; background: #38a169; }
+    .bar-fill.paste { background: #e53e3e; }
+
+    .sessions-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .sessions-table th {
+      background: #f7fafc;
+      padding: 8px 10px;
+      text-align: left;
+      color: #718096;
+      font-weight: 600;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .sessions-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #f7fafc;
+      color: #4a5568;
+    }
+    .sessions-table tr:last-child td { border-bottom: none; }
+    .badge-gap {
+      background: #fefcbf;
+      color: #744210;
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 10px;
+    }
+
+    .hash-box {
+      background: #f7fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-family: monospace;
+      font-size: 11px;
+      color: #718096;
+      word-break: break-all;
+      margin-top: 8px;
+    }
+
+    .reset-btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      color: #718096;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .reset-btn:hover { background: #f7fafc; color: #2d3748; }
+
+    .footer {
+      text-align: center;
+      padding: 32px 0;
+      color: #a0aec0;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>✍️ WritingProof</h1>
+  <p>Verify the authenticity of a document's writing history</p>
+</div>
+
+<div class="container">
+
+  <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()"
+       ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+    <div class="icon">🔍</div>
+    <h2>Upload Proof JSON</h2>
+    <p>Drag & drop or click to select the WritingProof JSON file</p>
+    <button class="btn-upload" onclick="event.stopPropagation(); document.getElementById('file-input').click()">
+      Choose File
+    </button>
+    <input type="file" id="file-input" accept=".json" onchange="onFileSelected(event)"/>
+  </div>
+
+  <div class="result" id="result">
+
+    <div class="status-card" id="status-card">
+      <div class="s-icon" id="status-icon"></div>
+      <div>
+        <div class="s-title" id="status-title"></div>
+        <div class="s-sub" id="status-sub"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Document Info</h3>
+      <div class="info-row"><span class="lbl">Document</span><span class="val" id="doc-title"></span></div>
+      <div class="info-row"><span class="lbl">Export Time</span><span class="val" id="export-time"></span></div>
+      <div class="info-row"><span class="lbl">Total Sessions</span><span class="val" id="total-sessions"></span></div>
+      <div class="info-row"><span class="lbl">Total Writing Time</span><span class="val" id="total-time"></span></div>
+      <div class="info-row"><span class="lbl">Avg Typing Speed</span><span class="val" id="avg-speed"></span></div>
+      <div class="info-row"><span class="lbl">Paste Events</span><span class="val" id="paste-events"></span></div>
+    </div>
+
+    <div class="card">
+      <h3>Writing Breakdown</h3>
+      <div class="bar-wrap">
+        <div class="bar-label"><span>⌨️ Typed by keyboard</span><span id="typed-pct-lbl"></span></div>
+        <div class="bar-track"><div class="bar-fill" id="typed-bar"></div></div>
+      </div>
+      <div class="bar-wrap">
+        <div class="bar-label"><span>📋 Pasted</span><span id="pasted-pct-lbl"></span></div>
+        <div class="bar-track"><div class="bar-fill paste" id="pasted-bar"></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Session Details</h3>
+      <table class="sessions-table">
+        <thead>
+          <tr>
+            <th>Session</th>
+            <th>Start</th>
+            <th>Duration</th>
+            <th>Typed</th>
+            <th>Pasted</th>
+            <th>Pastes</th>
+          </tr>
+        </thead>
+        <tbody id="sessions-tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Proof Hash</h3>
+      <p style="font-size:12px;color:#718096">This hash uniquely identifies the document's writing history. Compare with the QR code on the document.</p>
+      <div class="hash-box" id="hash-display"></div>
+    </div>
+
+    <button class="reset-btn" onclick="reset()">↩ Verify another file</button>
+  </div>
+
+</div>
+
+<div class="footer">WritingProof — Cryptographic proof of human authorship</div>
+
+<script>
+  // ─── URL HASH PARAM ─────────────────────────────
+  let expectedHash = null;
+
+  window.onload = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const h = params.get('hash');
+    const fileUrl = params.get('fileUrl');
+  
+    if (fileUrl) {
+      // OneDrive'dan otomatik yükle
+      try {
+        const res = await fetch(fileUrl);
+        const data = await res.json();
+        renderResult(data);
+      } catch(e) {
+        alert('Could not load proof file from OneDrive.');
+      }
+    } else if (h) {
+      expectedHash = h;
+      const hint = document.createElement('p');
+      hint.style.cssText = 'margin-top:12px;font-size:12px;color:#38a169;font-weight:600;';
+      hint.textContent = `🔗 Hash loaded from QR: ${h.substring(0, 16)}…`;
+      document.getElementById('upload-area').appendChild(hint);
+    }
+  };
+
+  // ─── DRAG & DROP ────────────────────────────────
+  function onDragOver(e) {
+    e.preventDefault();
+    document.getElementById('upload-area').classList.add('drag');
+  }
+  function onDragLeave() {
+    document.getElementById('upload-area').classList.remove('drag');
+  }
+  function onDrop(e) {
+    e.preventDefault();
+    document.getElementById('upload-area').classList.remove('drag');
+    const file = e.dataTransfer.files[0];
+    if (file) processFile(file);
+  }
+  function onFileSelected(e) {
+    const file = e.target.files[0];
+    if (file) processFile(file);
+  }
+
+  // ─── FILE PROCESSING ────────────────────────────
+  function processFile(file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        renderResult(data);
+      } catch {
+        alert('Invalid JSON file.');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function renderResult(data) {
+    console.log('Last chain block:', data.proofChain?.[data.proofChain.length-1]?.data);
+    const sessions = data.sessions || [];
+    const chain = data.proofChain || [];
+    const isValid = validateChain(chain);
+
+    // Stats
+    let totalTyped = 0, totalPasted = 0, totalPasteCount = 0, totalMinutes = 0;
+    sessions.forEach(s => {
+      totalTyped += s.typed || 0;
+      totalPasted += s.pasted || 0;
+      totalPasteCount += s.pasteCount || 0;
+      totalMinutes += (new Date(s.end) - new Date(s.start)) / 60000;
+    });
+    totalMinutes = Math.round(totalMinutes);
+    const total = totalTyped + totalPasted;
+    const tp = total > 0 ? ((totalTyped / total) * 100).toFixed(1) : 0;
+    const pp = total > 0 ? ((totalPasted / total) * 100).toFixed(1) : 0;
+    const hrs = Math.floor(totalMinutes / 60);
+    const mn = totalMinutes % 60;
+    const timeStr = hrs > 0 ? `${hrs}h ${mn}m` : `${mn}m`;
+    const avgSpeed = totalMinutes > 0 ? Math.round(totalTyped / totalMinutes) : 0;
+
+    // Hash karşılaştırma — QR'dan gelen hash ile JSON'daki eşleşiyor mu?
+    const hashMatch = expectedHash ? (data.lastHash === expectedHash) : null;
+    const fullyValid = isValid && (hashMatch === null || hashMatch === true);
+
+    // Status
+    const card = document.getElementById('status-card');
+    card.className = 'status-card ' + (fullyValid ? 'valid' : 'invalid');
+    document.getElementById('status-icon').textContent = fullyValid ? '✅' : '❌';
+
+    const verificationStatus = data.proofChain?.length > 0 
+      ? data.proofChain[data.proofChain.length - 1].data?.verificationStatus 
+      : null;
+    const untrackedChars = data.proofChain?.length > 0
+      ? data.proofChain[data.proofChain.length - 1].data?.untrackedChars || 0
+      : 0;
+
+    if (!isValid) {
+      card.className = 'status-card invalid';
+      document.getElementById('status-icon').textContent = '❌';
+      document.getElementById('status-title').textContent = 'Proof chain invalid';
+      document.getElementById('status-sub').textContent = 'Records may have been altered.';
+    } else if (hashMatch === false) {
+      card.className = 'status-card invalid';
+      document.getElementById('status-icon').textContent = '❌';
+      document.getElementById('status-title').textContent = 'Hash mismatch';
+      document.getElementById('status-sub').textContent = 'This JSON does not match the QR code on the document.';
+    } else if (verificationStatus === 'UNVERIFIED') {
+      card.className = 'status-card invalid';
+      document.getElementById('status-icon').textContent = '⚠️';
+      document.getElementById('status-title').textContent = 'Untracked content detected';
+      document.getElementById('status-sub').textContent = `${untrackedChars} characters were written while the add-in was closed and cannot be verified.`;
+    } else {
+      card.className = 'status-card valid';
+      document.getElementById('status-icon').textContent = '✅';
+      document.getElementById('status-title').textContent = 'Fully verified';
+      document.getElementById('status-sub').textContent = hashMatch === true
+        ? 'Hash matches QR. All content was tracked by WritingProof.'
+        : 'All content was tracked by WritingProof.';
+    }
+
+    // Info
+    document.getElementById('doc-title').textContent = data.docTitle || '—';
+    document.getElementById('export-time').textContent = data.exportTime
+      ? data.exportTime.substring(0, 16).replace('T', ' ') : '—';
+    document.getElementById('total-sessions').textContent = sessions.length;
+    document.getElementById('total-time').textContent = timeStr;
+    document.getElementById('avg-speed').textContent = avgSpeed + ' chars/min';
+    document.getElementById('paste-events').textContent = totalPasteCount;
+
+    // Bars
+    document.getElementById('typed-pct-lbl').textContent = tp + '%';
+    document.getElementById('pasted-pct-lbl').textContent = pp + '%';
+    document.getElementById('typed-bar').style.width = tp + '%';
+    document.getElementById('pasted-bar').style.width = pp + '%';
+
+    // Sessions
+    let tbody = '';
+    let sessionNum = 0;
+    sessions.forEach(s => {
+      const mins = Math.round((new Date(s.end) - new Date(s.start)) / 60000);
+      const tag = s.type === 'gap'
+        ? '<span class="badge-gap">While closed</span>'
+        : `Session ${++sessionNum}`;
+      tbody += `<tr>
+        <td>${tag}</td>
+        <td>${s.start.substring(0,16).replace('T',' ')}</td>
+        <td>${mins}m</td>
+        <td>${fmt(s.typed || 0)}</td>
+        <td>${fmt(s.pasted || 0)}</td>
+        <td>${s.pasteCount || 0}</td>
+      </tr>`;
+    });
+    document.getElementById('sessions-tbody').innerHTML = tbody;
+
+    // Hash
+    document.getElementById('hash-display').textContent = data.lastHash || '—';
+
+    // Show result
+    document.getElementById('upload-area').style.display = 'none';
+    document.getElementById('result').style.display = 'block';
+  }
+
+  // ─── CHAIN VALIDATION ───────────────────────────
+  function validateChain(chain) {
+    if (!chain || chain.length === 0) return false;
+    for (let i = 1; i < chain.length; i++) {
+      if (chain[i].prevHash !== chain[i - 1].hash) return false;
+    }
+    return true;
+  }
+
+  // ─── UTILS ──────────────────────────────────────
+  function fmt(n) {
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+    return n.toString();
+  }
+
+  function reset() {
+    document.getElementById('upload-area').style.display = 'block';
+    document.getElementById('result').style.display = 'none';
+    document.getElementById('file-input').value = '';
+  }
+</script>
+
+</body>
+</html>
+
+</body>
+</html>
